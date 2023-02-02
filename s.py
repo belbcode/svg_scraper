@@ -1,25 +1,29 @@
-import urllib.request
-from bs4 import BeautifulSoup
-contents = urllib.request.urlopen("https://www.youtube.com").read()
-soup = BeautifulSoup(contents, 'lxml')
-# soup= soup.prettify()
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import s_svg_locator
 
-print(soup.find_all('svg'))
-# content = ""
-# array_of_svgs = []
-# readContent = False
+class SVGServer(BaseHTTPRequestHandler):
 
-# for x in range(0, len(soup)):
-#     if(soup[x:x+4]== /refex/):
-#         i = x + 4
-#         if(soup[i]!='>'):
-#             i += 1
-#             continue
-#         readContent = True
-#     if(soup[x:x+6]=='</div>'):
-#         readContent = False
-#         array_of_svgs.append(content)
-#         content = ""
-#     if(readContent):
-#         content += soup[x]
-# print(array_of_svgs)
+    def do_GET(self):
+        if(self.path == 'GET /favicon.ico HTTP/1.1'):
+            print('here')
+            self.send_response(':(')
+            return
+
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        
+        req_query = (self.path).split('%22')
+
+        response = s_svg_locator(req_query[1])
+        print(response)
+        self.wfile.write(bytes(f"{req_query}", "utf-8"))   
+
+
+def run(server_class=HTTPServer, handler_class=SVGServer):
+
+    server_address = ('', 8000)
+    httpd = server_class(server_address, handler_class)
+    httpd.serve_forever()
+
+run()
